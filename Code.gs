@@ -24,12 +24,15 @@ function json_(obj) {
 }
 
 function rows_() {
-  const values = sheet_().getDataRange().getValues();
+  const sh = sheet_();
+  const tz = sh.getParent().getSpreadsheetTimeZone();
+  const isDate = v => v && typeof v.getTime === 'function';
+  const values = sh.getDataRange().getValues();
   values.shift();
   return values.filter(r => r[0]).map(r => ({
     id: String(r[0]),
-    logged_at: r[1] instanceof Date ? r[1].toISOString() : String(r[1]),
-    date: r[2] instanceof Date ? Utilities.formatDate(r[2], 'Asia/Dubai', 'yyyy-MM-dd') : String(r[2]),
+    logged_at: isDate(r[1]) ? r[1].toISOString() : String(r[1]),
+    date: isDate(r[2]) ? Utilities.formatDate(r[2], tz, 'yyyy-MM-dd') : String(r[2]).slice(0, 10),
     who: r[3], amount: Number(r[4]), category: r[5], merchant: r[6], card: r[7], note: r[8]
   }));
 }
@@ -62,7 +65,7 @@ function doPost(e) {
       if (!it || !it.id || existing.has(String(it.id))) return;   // ignore duplicates from offline retries
       const amt = Number(it.amount);
       if (!(amt > 0)) return;
-      sh.appendRow([String(it.id), new Date(), it.date, it.who, amt, it.category || 'Other', it.merchant || '', it.card || '', it.note || '']);
+      sh.appendRow([String(it.id), new Date(), "'" + String(it.date).slice(0, 10), it.who, amt, it.category || 'Other', it.merchant || '', it.card || '', it.note || '']);
       existing.add(String(it.id)); added++;
     });
     return json_({ ok: true, added: added });
