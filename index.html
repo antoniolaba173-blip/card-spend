@@ -138,6 +138,7 @@ input, select { font: inherit; font-size: 16px; color: var(--fg); background: va
 <div class="sheet-bg" id="setSheet" hidden>
   <form class="sheet" id="setForm" autocomplete="off">
     <h3>Settings</h3>
+    <label>Paste setup link (optional)<input id="sLink" type="url" placeholder="https://…#s=…"></label>
     <label>Google Sheet link (Apps Script web app URL)<input id="sUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec"></label>
     <label>PIN (the TOKEN in your script)<input id="sToken" type="password"></label>
     <label>This phone belongs to<div class="who-toggle" id="sWho"></div></label>
@@ -187,8 +188,7 @@ input, select { font: inherit; font-size: 16px; color: var(--fg); background: va
       const s = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
       cfg.url = s.url || cfg.url; cfg.token = s.token || cfg.token; if (s.names) cfg.names = s.names; if (s.cards) cfg.cards = s.cards; if (s.budget) cfg.budget = s.budget;
       cfg.me = (s.me === 0 || s.me === 1) ? s.me : 1; store.set('cfg', cfg);
-      history.replaceState(null, '', location.pathname);
-      setTimeout(() => toast('Setup loaded. Check "This phone belongs to" in Settings.'), 300);
+      if (!store.get('setupShown', false)) { store.set('setupShown', true); setTimeout(() => toast('Setup loaded. Now add this page to your home screen.'), 300); }
     } catch (e) {}
   }
 
@@ -323,7 +323,7 @@ input, select { font: inherit; font-size: 16px; color: var(--fg); background: va
 
   // Settings
   function openSet() {
-    $('sUrl').value = cfg.url; $('sToken').value = cfg.token; $('sName1').value = cfg.names[0]; $('sName2').value = cfg.names[1];
+    $('sLink').value = ''; $('sUrl').value = cfg.url; $('sToken').value = cfg.token; $('sName1').value = cfg.names[0]; $('sName2').value = cfg.names[1];
     $('sCards').value = cfg.cards.join(', '); $('sBudget').value = cfg.budget; $('setMsg').textContent = ''; $('shareOut').hidden = true;
     chips($('sWho'), cfg.names, cfg.me, (t, i) => cfg.me = i);
     $('setSheet').hidden = false;
@@ -332,6 +332,8 @@ input, select { font: inherit; font-size: 16px; color: var(--fg); background: va
   $('setCancel').addEventListener('click', () => $('setSheet').hidden = true);
   $('setForm').addEventListener('submit', e => {
     e.preventDefault();
+    const link = $('sLink').value.trim();
+    if (link.includes('#s=')) { location.hash = link.slice(link.indexOf('#s=') + 1); location.reload(); return; }
     cfg.url = $('sUrl').value.trim(); cfg.token = $('sToken').value.trim();
     cfg.names = [$('sName1').value.trim() || 'Antonio', $('sName2').value.trim() || 'Rima'];
     cfg.cards = $('sCards').value.split(',').map(s => s.trim()).filter(Boolean); if (!cfg.cards.length) cfg.cards = ['Card'];

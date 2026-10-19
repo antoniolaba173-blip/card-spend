@@ -1,7 +1,6 @@
 {
   "name": "Card Spend",
   "short_name": "Card Spend",
-  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f4f6f3",
