@@ -183,11 +183,11 @@ input, select { font: inherit; font-size: 16px; color: var(--fg); background: va
   let delId = null;
 
   // Setup link: #s=<base64 json> fills URL and PIN on the other phone.
-  if (location.hash.startsWith('#s=')) {
+  if (location.hash.startsWith('#s=') && store.get('appliedSetup', '') !== location.hash) {
     try {
       const s = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
       cfg.url = s.url || cfg.url; cfg.token = s.token || cfg.token; if (s.names) cfg.names = s.names; if (s.cards) cfg.cards = s.cards; if (s.budget) cfg.budget = s.budget;
-      cfg.me = (s.me === 0 || s.me === 1) ? s.me : 1; store.set('cfg', cfg);
+      cfg.me = (s.me === 0 || s.me === 1) ? s.me : 1; store.set('cfg', cfg); store.set('appliedSetup', location.hash);
       if (!store.get('setupShown', false)) { store.set('setupShown', true); setTimeout(() => toast('Setup loaded. Now add this page to your home screen.'), 300); }
     } catch (e) {}
   }
